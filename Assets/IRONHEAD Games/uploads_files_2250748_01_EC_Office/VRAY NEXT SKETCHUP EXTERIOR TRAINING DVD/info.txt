@@ -1,0 +1,12 @@
+Hello everyone,
+
+I'm Evren Cavusoglu. I have been teaching sketchup and vray for 10 years. I finally published my first vray training in English.The subject of this course will be rendering exterior day and night with Vray Next For Sketchup.
+
+Vray Next is the latest vray version for sketchup (4.0). This is the fastest and most improved version ever. Significant updates have been added, especially on GPU rendering.Many users have difficulty in getting the ambience they want. This training set is designed particularly for exterior rendering. In this training set, I explained the topics step by step from beginner to expert. Instead of large files, I explained subjects through small scenes. I added these scenes as files . If you are a Vray for sketchup 3.4 or 3.6 user, it will not be difficult to get used to this version.
+
+
+evrencavusoglu@gmail.com
+
+www.evrencavusoglu.com
+
+https://www.udemy.com/course/vray-next-for-sketchup-exterior/
