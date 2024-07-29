@@ -2077,7 +2077,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f42010661b9b0ea42b3eccf6f85683ae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  imagesDirectory: D:\TP\models\nepal_jodhpuriVilla\PanoramaImages
+  imagesDirectory: D:\TP\123\RamanNivas\NepaliVilla\PanaromaImages
   invertedSpherePrefab: {fileID: 919132149155446097, guid: 0c42f3bd08b5dda48922d3b174e576ae, type: 3}
   distanceBetweenSpheres: 30
   sphereScale: {x: 10, y: 10, z: 10}
@@ -3010,8 +3010,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1bcd385e840348240bd7abca983720bd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  objDirectoryPath: 
-  jsonDirectoryPath: 
+  objDirectoryPath: D:\TP\123\RamanNivas\NepaliVilla\model
+  jsonDirectoryPath: D:\TP\123\RamanNivas\NepaliVilla\info.json
 --- !u!4 &1933082100
 Transform:
   m_ObjectHideFlags: 0
@@ -3095,7 +3095,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1990258038
 Transform:
   m_ObjectHideFlags: 0
@@ -3127,8 +3127,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   baseURL: http://localhost:3000
-  username: nepal
-  propertyName: jodhpuriVilla
+  organisationName: 123
+  parentPropertyName: RamanNivas
+  childPropertyName: NepaliVilla
   localPath: D:\TP
   importerObject: {fileID: 1933082098}
   anotherObject: {fileID: 1629153426}
