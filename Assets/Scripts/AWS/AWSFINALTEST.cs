@@ -136,7 +136,7 @@ using System.Collections;
 
 public class FetchObjects : MonoBehaviour
 {
-    public string baseURL = "http://localhost:3000";
+    public string baseURL = "https://theserver-tp6r.onrender.com";
     public string organisationName = "ExampleOrganisation";
     public string parentPropertyName = "ExampleParentProperty";
     public string childPropertyName = "ExampleChildProperty";
@@ -180,45 +180,48 @@ public class FetchObjects : MonoBehaviour
     IEnumerator DownloadObjects()
     {
         string url = baseURL + "/download/fetch-objects";
+        Debug.Log($"Sending request to: {url}");
 
-        // Create data object to send as JSON
-        FetchObjectsData data = new FetchObjectsData(organisationName, parentPropertyName, childPropertyName, localPath);
-        string jsonData = JsonUtility.ToJson(data);
+        // Create a new WWWForm for the multipart form data
+        WWWForm form = new WWWForm();
+        form.AddField("organisationName", organisationName);
+        form.AddField("parentPropertyName", parentPropertyName);
+        form.AddField("childPropertyName", childPropertyName);
+        form.AddField("localPath", localPath);
 
-        // Create UnityWebRequest
-        UnityWebRequest request = new UnityWebRequest(url, "POST");
-        byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(jsonData);
-        request.uploadHandler = new UploadHandlerRaw(bodyRaw);
-        request.downloadHandler = new DownloadHandlerBuffer();
-        request.SetRequestHeader("Content-Type", "application/json");
+        // Create UnityWebRequest and attach the form data
+        UnityWebRequest request = UnityWebRequest.Post(url, form);
 
         // Send the request
-        request.SendWebRequest();
+        Debug.Log("Sending request...");
+        yield return request.SendWebRequest();
 
-        // Track the progress of the request
-        while (!request.isDone)
-        {
-            if (request.uploadProgress < 1.0f)
-            {
-                Debug.Log($"Upload progress: {request.uploadProgress * 100}%");
-            }
-            else
-            {
-                if (request.downloadHandler != null && request.downloadHandler.data != null)
-                {
-                    Debug.Log($"Download progress: {request.downloadProgress * 100}%");
-                }
-                else
-                {
-                    Debug.Log("Waiting for response...");
-                }
-            }
-            yield return null;
-        }
-
+        // Check for network errors or HTTP errors
         if (request.result == UnityWebRequest.Result.Success)
         {
             Debug.Log("Request successful: " + request.downloadHandler.text);
+
+            // Process the response
+            ProcessResponse(request.downloadHandler.text);
+        }
+        else
+        {
+            Debug.LogError("Request failed: " + request.error);
+        }
+    }
+
+    void ProcessResponse(string jsonResponse)
+    {
+        // Assuming the response is a JSON object containing an array of files
+        ResponseData responseData = JsonUtility.FromJson<ResponseData>(jsonResponse);
+
+        if (responseData != null && responseData.files != null)
+        {
+            Debug.Log("Files downloaded successfully:");
+            foreach (var file in responseData.files)
+            {
+                Debug.Log($"File: {file.key}, Data (Base64): {file.data.Substring(0, 30)}..."); // Show first 30 characters
+            }
 
             // Enable the importer object
             if (importerObject != null)
@@ -227,14 +230,13 @@ public class FetchObjects : MonoBehaviour
                 Debug.Log("Importer object enabled.");
             }
 
-            // Enable the other object
+            // Enable the other objects
             if (anotherObject != null)
             {
                 anotherObject.SetActive(true);
                 Debug.Log("Another object enabled.");
             }
 
-            // Enable the third object
             if (thirdObject != null)
             {
                 thirdObject.SetActive(true);
@@ -243,25 +245,21 @@ public class FetchObjects : MonoBehaviour
         }
         else
         {
-            Debug.LogError("Request failed: " + request.error);
+            Debug.LogError("Failed to parse response or no files found.");
         }
     }
 
     [System.Serializable]
-    public class FetchObjectsData
+    public class ResponseData
     {
-        public string organisationName;
-        public string parentPropertyName;
-        public string childPropertyName;
-        public string localPath;
+        public string message;
+        public FileData[] files;
+    }
 
-        public FetchObjectsData(string org, string parentProp, string childProp, string path)
-        {
-            organisationName = org;
-            parentPropertyName = parentProp;
-            childPropertyName = childProp;
-            localPath = path;
-        }
+    [System.Serializable]
+    public class FileData
+    {
+        public string key;
+        public string data;
     }
 }
-
