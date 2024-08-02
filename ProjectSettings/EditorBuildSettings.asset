@@ -17,7 +17,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/IRONHEAD Games/Scenes/World_School.unity
     guid: b72244336204212439510723e69fa9f9
-  - enabled: 0
+  - enabled: 1
     path: Assets/IRONHEAD Games/Scenes/360VR.unity
     guid: d9c05ee74aabcf64794c0472d7c88573
   m_configObjects:

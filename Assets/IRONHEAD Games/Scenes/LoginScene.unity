@@ -3095,7 +3095,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1990258038
 Transform:
   m_ObjectHideFlags: 0
@@ -3126,7 +3126,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6199298da4393a749a0e31071984e16e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  baseURL: https://theserver-tp6r.onrender.com
+  baseURL: http://localhost:8081
   organisationName: 123
   parentPropertyName: RamanNivas
   childPropertyName: NepaliVilla
