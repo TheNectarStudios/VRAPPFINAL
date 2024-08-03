@@ -12,7 +12,6 @@ public class FetchObjects : MonoBehaviour
     public string organisationName = "ExampleOrganisation";
     public string parentPropertyName = "ExampleParentProperty";
     public string childPropertyName = "ExampleChildProperty";
-    public string localPath = @"D:\TP"; // Specify the local directory where files will be saved
     public GameObject importerObject;
     public GameObject anotherObject;
     public GameObject thirdObject;
@@ -57,7 +56,7 @@ public class FetchObjects : MonoBehaviour
                     if (string.IsNullOrEmpty(file.error))
                     {
                         byte[] fileData = System.Convert.FromBase64String(file.data);
-                        string filePath = Path.Combine(localPath, file.key);
+                        string filePath = Path.Combine(Application.persistentDataPath, file.key);
 
                         try
                         {
