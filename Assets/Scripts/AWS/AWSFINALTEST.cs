@@ -4,18 +4,25 @@ using System.Collections;
 using System.Text;
 using System.Collections.Generic;
 
-public class FileDownloader : MonoBehaviour
+public class AWSFINALTEST : MonoBehaviour
 {
     public string baseURL = "https://theserver-tp6r.onrender.com";
-    public string organisationName = "ExampleOrganisation";
-    public string parentPropertyName = "ExampleParentProperty";
-    public string childPropertyName = "ExampleChildProperty";
     public GameObject importerObject;
     public GameObject anotherObject;
     public GameObject thirdObject;
 
+    private BookingFetcher bookingFetcher;
+
     void Start()
     {
+        bookingFetcher = FindObjectOfType<BookingFetcher>();
+
+        if (bookingFetcher == null)
+        {
+            Debug.LogError("BookingFetcher component not found.");
+            return;
+        }
+
         if (importerObject != null) importerObject.SetActive(false);
         if (anotherObject != null) anotherObject.SetActive(false);
         if (thirdObject != null) thirdObject.SetActive(false);
@@ -25,6 +32,22 @@ public class FileDownloader : MonoBehaviour
 
     IEnumerator DownloadObjects()
     {
+        // Wait for BookingFetcher to fetch data
+        yield return new WaitUntil(() => bookingFetcher.WatchlistDictionary != null && bookingFetcher.WatchlistDictionary.Count > 0);
+
+        WatchlistItem firstItem = bookingFetcher.GetFirstWatchlistItem();
+        if (firstItem == null)
+        {
+            Debug.LogError("No watchlist item found.");
+            yield break;
+        }
+
+        string organisationName = firstItem.organisationName;
+        string parentPropertyName = firstItem.parentPropertyName;
+        string childPropertyName = firstItem.propertyName;
+
+        Debug.Log("Using data: " + organisationName + ", " + parentPropertyName + ", " + childPropertyName);
+
         string url = baseURL + "/download/fetch-objects";
 
         FetchObjectsData data = new FetchObjectsData(organisationName, parentPropertyName, childPropertyName);

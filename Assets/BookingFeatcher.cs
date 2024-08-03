@@ -10,8 +10,11 @@ public class BookingFetcher : MonoBehaviour
 
     public BookingData bookingData;
 
+    private Dictionary<string, WatchlistItem> watchlistDictionary;
+
     void Start()
     {
+        watchlistDictionary = new Dictionary<string, WatchlistItem>();
         StartCoroutine(FetchBookingByKey());
     }
 
@@ -30,6 +33,7 @@ public class BookingFetcher : MonoBehaviour
             if (response.booking != null)
             {
                 bookingData = response.booking;
+                StoreWatchlistItems(response.booking.watchlist);
                 Debug.Log("Booking Key: " + response.booking.key);
                 foreach (var item in response.booking.watchlist)
                 {
@@ -52,28 +56,51 @@ public class BookingFetcher : MonoBehaviour
         }
     }
 
-    [System.Serializable]
-    public class WatchlistItem
+    void StoreWatchlistItems(List<WatchlistItem> watchlist)
     {
-        public string propertyName;
-        public string parentPropertyName;
-        public string organisationName;
-        public string date;
-        public string time;
-        public string imageURL;
+        foreach (var item in watchlist)
+        {
+            string key = GetCompositeKey(item);
+            if (!watchlistDictionary.ContainsKey(key))
+            {
+                watchlistDictionary[key] = item;
+                Debug.Log("Stored item with key: " + key);
+            }
+        }
+    }
+
+    string GetCompositeKey(WatchlistItem item)
+    {
+        return $"{item.organisationName}_{item.propertyName}_{item.parentPropertyName}";
+    }
+
+    public Dictionary<string, WatchlistItem> WatchlistDictionary
+    {
+        get { return watchlistDictionary; }
+    }
+
+    public WatchlistItem GetFirstWatchlistItem()
+    {
+        foreach (var item in watchlistDictionary.Values)
+        {
+            return item; // Return the first item
+        }
+        return null;
     }
 
     [System.Serializable]
     public class BookingData
     {
-        public string key;
+        public string _id;
+        public string username;
         public List<WatchlistItem> watchlist;
+        public string key;
+        public string date;
     }
 
     [System.Serializable]
     public class BookingResponse
     {
-        public string message;
         public BookingData booking;
     }
 }
