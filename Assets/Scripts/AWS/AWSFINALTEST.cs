@@ -1,46 +1,27 @@
 using UnityEngine;
 using UnityEngine.Networking;
 using System.Collections;
+using System.Collections.Generic;
+using System.Text;
+using System.IO;
+using System;
 
 public class FetchObjects : MonoBehaviour
 {
-    public string baseURL = "http://localhost:8080";
+    public string baseURL = "https://theserver-tp6r.onrender.com";
     public string organisationName = "ExampleOrganisation";
     public string parentPropertyName = "ExampleParentProperty";
     public string childPropertyName = "ExampleChildProperty";
-    public string localPath = @"D:\TP";
-    public GameObject importerObject; // Reference to the object responsible for importing
-    public GameObject anotherObject; // Reference to another object to be enabled
-    public GameObject thirdObject; // Reference to the third object to be enabled
+    public string localPath = @"D:\TP"; // Specify the local directory where files will be saved
+    public GameObject importerObject;
+    public GameObject anotherObject;
+    public GameObject thirdObject;
 
     void Start()
     {
-        if (importerObject != null)
-        {
-            importerObject.SetActive(false); // Ensure the importer object is initially disabled
-        }
-        else
-        {
-            Debug.LogWarning("Importer object is not assigned.");
-        }
-
-        if (anotherObject != null)
-        {
-            anotherObject.SetActive(false); // Ensure the other object is initially disabled
-        }
-        else
-        {
-            Debug.LogWarning("Another object is not assigned.");
-        }
-
-        if (thirdObject != null)
-        {
-            thirdObject.SetActive(false); // Ensure the third object is initially disabled
-        }
-        else
-        {
-            Debug.LogWarning("Third object is not assigned.");
-        }
+        if (importerObject != null) importerObject.SetActive(false);
+        if (anotherObject != null) anotherObject.SetActive(false);
+        if (thirdObject != null) thirdObject.SetActive(false);
 
         StartCoroutine(DownloadObjects());
     }
@@ -48,65 +29,67 @@ public class FetchObjects : MonoBehaviour
     IEnumerator DownloadObjects()
     {
         string url = baseURL + "/download/fetch-objects";
-        
-        // Create data object to send as JSON
-        FetchObjectsData data = new FetchObjectsData(organisationName, parentPropertyName, childPropertyName, localPath);
+
+        FetchObjectsData data = new FetchObjectsData(organisationName, parentPropertyName, childPropertyName);
         string jsonData = JsonUtility.ToJson(data);
 
-        // Create UnityWebRequest
         UnityWebRequest request = new UnityWebRequest(url, "POST");
-        byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(jsonData);
+        byte[] bodyRaw = Encoding.UTF8.GetBytes(jsonData);
         request.uploadHandler = new UploadHandlerRaw(bodyRaw);
         request.downloadHandler = new DownloadHandlerBuffer();
         request.SetRequestHeader("Content-Type", "application/json");
 
-        // Send the request
-        request.SendWebRequest();
-
-        // Track the progress of the request
-        while (!request.isDone)
-        {
-            if (request.uploadProgress < 1.0f)
-            {
-                Debug.Log($"Upload progress: {request.uploadProgress * 100}%");
-            }
-            else
-            {
-                if (request.downloadHandler != null && request.downloadHandler.data != null)
-                {
-                    Debug.Log($"Download progress: {request.downloadProgress * 100}%");
-                }
-                else
-                {
-                    Debug.Log("Waiting for response...");
-                }
-            }
-            yield return null;
-        }
+        yield return request.SendWebRequest();
 
         if (request.result == UnityWebRequest.Result.Success)
         {
             Debug.Log("Request successful: " + request.downloadHandler.text);
-            
-            // Enable the importer object
-            if (importerObject != null)
-            {
-                importerObject.SetActive(true);
-                Debug.Log("Importer object enabled.");
-            }
+            FilesResponse response = JsonUtility.FromJson<FilesResponse>(request.downloadHandler.text);
 
-            // Enable the other object
-            if (anotherObject != null)
+            if (response.files == null || response.files.Count == 0)
             {
-                anotherObject.SetActive(true);
-                Debug.Log("Another object enabled.");
+                Debug.LogWarning("No files found in the response.");
             }
-
-            // Enable the third object
-            if (thirdObject != null)
+            else
             {
-                thirdObject.SetActive(true);
-                Debug.Log("Third object enabled.");
+                foreach (var file in response.files)
+                {
+                    if (string.IsNullOrEmpty(file.error))
+                    {
+                        byte[] fileData = System.Convert.FromBase64String(file.data);
+                        string filePath = Path.Combine(localPath, file.key);
+
+                        try
+                        {
+                            // Ensure the directory exists
+                            string directoryPath = Path.GetDirectoryName(filePath);
+                            if (!Directory.Exists(directoryPath))
+                            {
+                                Directory.CreateDirectory(directoryPath);
+                            }
+
+                            // Save the file to the local path
+                            File.WriteAllBytes(filePath, fileData);
+                            Debug.Log("Saved file to: " + filePath);
+                        }
+                        catch (UnauthorizedAccessException ex)
+                        {
+                            Debug.LogError("UnauthorizedAccessException: Access to the path is denied. " + ex.Message);
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.LogError("Exception: " + ex.Message);
+                        }
+                    }
+                    else
+                    {
+                        Debug.LogError("Error downloading file: " + file.error);
+                    }
+                }
+
+                if (importerObject != null) importerObject.SetActive(true);
+                if (anotherObject != null) anotherObject.SetActive(true);
+                if (thirdObject != null) thirdObject.SetActive(true);
             }
         }
         else
@@ -121,17 +104,32 @@ public class FetchObjects : MonoBehaviour
         public string organisationName;
         public string parentPropertyName;
         public string childPropertyName;
-        public string localPath;
 
-        public FetchObjectsData(string org, string parentProp, string childProp, string path)
+        public FetchObjectsData(string org, string parentProp, string childProp)
         {
             organisationName = org;
             parentPropertyName = parentProp;
             childPropertyName = childProp;
-            localPath = path;
         }
     }
+
+    [System.Serializable]
+    public class FileData
+    {
+        public string key;
+        public string data;
+        public string error;
+    }
+
+    [System.Serializable]
+    public class FilesResponse
+    {
+        public string message;
+        public List<FileData> files;
+    }
 }
+
+
 
 
 
