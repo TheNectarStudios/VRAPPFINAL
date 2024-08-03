@@ -4,28 +4,31 @@ using Dummiesman; // Include Dummiesman namespace
 
 public class HeavyObjImporter : MonoBehaviour
 {
-    public string objDirectoryPath; // Path to the directory containing OBJ files
-    public string jsonDirectoryPath; // Path to the directory containing JSON files
+    public string objRelativeDirectoryPath; // Relative path to the directory containing OBJ files
+    public string jsonRelativeDirectoryPath; // Relative path to the directory containing JSON files
 
     private GameObject objModel;
 
     void Start()
     {
-        // Example paths (adjust as needed or provide dynamically)
-        objDirectoryPath = @"D:\TP\123\RamanNivas\NepaliVilla\model";
-        jsonDirectoryPath = @"D:\TP\123\RamanNivas\NepaliVilla";
+        // Example relative paths (adjust as needed or provide dynamically)
+        objRelativeDirectoryPath = "123/RamanNivas/NepaliVilla/model";
+        jsonRelativeDirectoryPath = "123/RamanNivas/NepaliVilla";
 
         // Call method to find and load OBJ and JSON files
-        LoadAndMoveOBJ(objDirectoryPath, jsonDirectoryPath);
+        LoadAndMoveOBJ(objRelativeDirectoryPath, jsonRelativeDirectoryPath);
     }
 
-    void LoadAndMoveOBJ(string objPath, string jsonPath)
+    void LoadAndMoveOBJ(string objRelativePath, string jsonRelativePath)
     {
-        if (string.IsNullOrEmpty(objPath) || string.IsNullOrEmpty(jsonPath))
+        if (string.IsNullOrEmpty(objRelativePath) || string.IsNullOrEmpty(jsonRelativePath))
         {
             Debug.LogError("Invalid directory path.");
             return;
         }
+
+        string objPath = Path.Combine(Application.persistentDataPath, objRelativePath);
+        string jsonPath = Path.Combine(Application.persistentDataPath, jsonRelativePath);
 
         // Check if the OBJ directory exists
         if (!Directory.Exists(objPath))
