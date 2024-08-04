@@ -26,7 +26,7 @@ public class PlayerPrefsViewer : EditorWindow
             {
                 string value = PlayerPrefs.GetString(key);
                 GUILayout.Label($"{key}: {value}");
-            }
+            }  
         }
     }
 
