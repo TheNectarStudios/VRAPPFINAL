@@ -10,11 +10,8 @@ public class BookingFetcher : MonoBehaviour
 
     public BookingData bookingData;
 
-    private Dictionary<string, WatchlistItem> watchlistDictionary;
-
     void Start()
     {
-        watchlistDictionary = new Dictionary<string, WatchlistItem>();
         StartCoroutine(FetchBookingByKey());
     }
 
@@ -58,34 +55,34 @@ public class BookingFetcher : MonoBehaviour
 
     void StoreWatchlistItems(List<WatchlistItem> watchlist)
     {
-        foreach (var item in watchlist)
+        for (int i = 0; i < watchlist.Count; i++)
         {
-            string key = GetCompositeKey(item);
-            if (!watchlistDictionary.ContainsKey(key))
-            {
-                watchlistDictionary[key] = item;
-                Debug.Log("Stored item with key: " + key);
-            }
+            WatchlistItem item = watchlist[i];
+            SaveWatchlistItem(i, item);
         }
     }
 
-    string GetCompositeKey(WatchlistItem item)
+    void SaveWatchlistItem(int index, WatchlistItem item)
     {
-        return $"{item.organisationName}_{item.propertyName}_{item.parentPropertyName}";
+        PlayerPrefs.SetString("WatchlistItem_" + index + "_propertyName", item.propertyName);
+        PlayerPrefs.SetString("WatchlistItem_" + index + "_parentPropertyName", item.parentPropertyName);
+        PlayerPrefs.SetString("WatchlistItem_" + index + "_organisationName", item.organisationName);
+        PlayerPrefs.SetString("WatchlistItem_" + index + "_date", item.date);
+        PlayerPrefs.SetString("WatchlistItem_" + index + "_time", item.time);
+        PlayerPrefs.SetString("WatchlistItem_" + index + "_imageURL", item.imageURL);
+        PlayerPrefs.SetString("WatchlistItem_" + index + "_username", item.username);
     }
 
-    public Dictionary<string, WatchlistItem> WatchlistDictionary
+    [System.Serializable]
+    public class WatchlistItem
     {
-        get { return watchlistDictionary; }
-    }
-
-    public WatchlistItem GetFirstWatchlistItem()
-    {
-        foreach (var item in watchlistDictionary.Values)
-        {
-            return item; // Return the first item
-        }
-        return null;
+        public string propertyName;
+        public string parentPropertyName;
+        public string organisationName;
+        public string date;
+        public string time;
+        public string imageURL;
+        public string username;
     }
 
     [System.Serializable]

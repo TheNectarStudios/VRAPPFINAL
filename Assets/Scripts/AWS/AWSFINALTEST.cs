@@ -1,8 +1,8 @@
 using UnityEngine;
 using UnityEngine.Networking;
 using System.Collections;
-using System.Text;
 using System.Collections.Generic;
+using System.Text;
 
 public class AWSFINALTEST : MonoBehaviour
 {
@@ -11,18 +11,8 @@ public class AWSFINALTEST : MonoBehaviour
     public GameObject anotherObject;
     public GameObject thirdObject;
 
-    private BookingFetcher bookingFetcher;
-
     void Start()
     {
-        bookingFetcher = FindObjectOfType<BookingFetcher>();
-
-        if (bookingFetcher == null)
-        {
-            Debug.LogError("BookingFetcher component not found.");
-            return;
-        }
-
         if (importerObject != null) importerObject.SetActive(false);
         if (anotherObject != null) anotherObject.SetActive(false);
         if (thirdObject != null) thirdObject.SetActive(false);
@@ -32,10 +22,10 @@ public class AWSFINALTEST : MonoBehaviour
 
     IEnumerator DownloadObjects()
     {
-        // Wait for BookingFetcher to fetch data
-        yield return new WaitUntil(() => bookingFetcher.WatchlistDictionary != null && bookingFetcher.WatchlistDictionary.Count > 0);
+        // Wait until a watchlist item is available
+        yield return new WaitUntil(() => PlayerPrefs.HasKey("WatchlistItem_0_propertyName"));
 
-        WatchlistItem firstItem = bookingFetcher.GetFirstWatchlistItem();
+        WatchlistItem firstItem = LoadWatchlistItem(0);
         if (firstItem == null)
         {
             Debug.LogError("No watchlist item found.");
@@ -96,6 +86,25 @@ public class AWSFINALTEST : MonoBehaviour
         }
     }
 
+    WatchlistItem LoadWatchlistItem(int index)
+    {
+        if (PlayerPrefs.HasKey("WatchlistItem_" + index + "_propertyName"))
+        {
+            WatchlistItem item = new WatchlistItem
+            {
+                propertyName = PlayerPrefs.GetString("WatchlistItem_" + index + "_propertyName"),
+                parentPropertyName = PlayerPrefs.GetString("WatchlistItem_" + index + "_parentPropertyName"),
+                organisationName = PlayerPrefs.GetString("WatchlistItem_" + index + "_organisationName"),
+                date = PlayerPrefs.GetString("WatchlistItem_" + index + "_date"),
+                time = PlayerPrefs.GetString("WatchlistItem_" + index + "_time"),
+                imageURL = PlayerPrefs.GetString("WatchlistItem_" + index + "_imageURL"),
+                username = PlayerPrefs.GetString("WatchlistItem_" + index + "_username")
+            };
+            return item;
+        }
+        return null;
+    }
+
     [System.Serializable]
     public class FetchObjectsData
     {
@@ -124,5 +133,17 @@ public class AWSFINALTEST : MonoBehaviour
     {
         public string message;
         public List<FileData> files;
+    }
+
+    [System.Serializable]
+    public class WatchlistItem
+    {
+        public string propertyName;
+        public string parentPropertyName;
+        public string organisationName;
+        public string date;
+        public string time;
+        public string imageURL;
+        public string username;
     }
 }
