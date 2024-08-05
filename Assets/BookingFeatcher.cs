@@ -10,11 +10,18 @@ public class BookingFetcher : MonoBehaviour
 
     public BookingData bookingData;
 
+    public static string FetchedRoomKey; // Store the fetched room key
+
     void Start()
     {
         StartCoroutine(FetchBookingByKey());
     }
 
+     public void StartFetchingBooking(string bookingKey)
+    {
+        this.bookingKey = bookingKey;
+        StartCoroutine(FetchBookingByKey());
+    }
     IEnumerator FetchBookingByKey()
     {
         string url = baseURL + "/slots/bookings/key/" + bookingKey;
@@ -30,17 +37,8 @@ public class BookingFetcher : MonoBehaviour
             if (response.booking != null)
             {
                 bookingData = response.booking;
-                StoreWatchlistItems(response.booking.watchlist);
-                Debug.Log("Booking Key: " + response.booking.key);
-                foreach (var item in response.booking.watchlist)
-                {
-                    Debug.Log("Property Name: " + item.propertyName);
-                    Debug.Log("Parent Property Name: " + item.parentPropertyName);
-                    Debug.Log("Organisation Name: " + item.organisationName);
-                    Debug.Log("Date: " + item.date);
-                    Debug.Log("Time: " + item.time);
-                    Debug.Log("Image URL: " + item.imageURL);
-                }
+                FetchedRoomKey = response.booking.key;
+                Debug.Log("Fetched Room Key: " + FetchedRoomKey);
             }
             else
             {
@@ -51,38 +49,6 @@ public class BookingFetcher : MonoBehaviour
         {
             Debug.LogError("Request failed: " + request.error);
         }
-    }
-
-    void StoreWatchlistItems(List<WatchlistItem> watchlist)
-    {
-        for (int i = 0; i < watchlist.Count; i++)
-        {
-            WatchlistItem item = watchlist[i];
-            SaveWatchlistItem(i, item);
-        }
-    }
-
-    void SaveWatchlistItem(int index, WatchlistItem item)
-    {
-        PlayerPrefs.SetString("WatchlistItem_" + index + "_propertyName", item.propertyName);
-        PlayerPrefs.SetString("WatchlistItem_" + index + "_parentPropertyName", item.parentPropertyName);
-        PlayerPrefs.SetString("WatchlistItem_" + index + "_organisationName", item.organisationName);
-        PlayerPrefs.SetString("WatchlistItem_" + index + "_date", item.date);
-        PlayerPrefs.SetString("WatchlistItem_" + index + "_time", item.time);
-        PlayerPrefs.SetString("WatchlistItem_" + index + "_imageURL", item.imageURL);
-        PlayerPrefs.SetString("WatchlistItem_" + index + "_username", item.username);
-    }
-
-    [System.Serializable]
-    public class WatchlistItem
-    {
-        public string propertyName;
-        public string parentPropertyName;
-        public string organisationName;
-        public string date;
-        public string time;
-        public string imageURL;
-        public string username;
     }
 
     [System.Serializable]
@@ -99,5 +65,17 @@ public class BookingFetcher : MonoBehaviour
     public class BookingResponse
     {
         public BookingData booking;
+    }
+
+    [System.Serializable]
+    public class WatchlistItem
+    {
+        public string propertyName;
+        public string parentPropertyName;
+        public string organisationName;
+        public string date;
+        public string time;
+        public string imageURL;
+        public string username;
     }
 }
