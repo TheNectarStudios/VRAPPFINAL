@@ -17,24 +17,47 @@ public class AWSFINALTEST : MonoBehaviour
         if (anotherObject != null) anotherObject.SetActive(false);
         if (thirdObject != null) thirdObject.SetActive(false);
 
-        StartCoroutine(DownloadObjects());
+        WatchlistItem item = LoadWatchlistItemFromPlayerPrefs();
+        if (item != null)
+        {
+            SetWatchlistItem(item);
+        }
+        else
+        {
+            Debug.LogError("No watchlist item found in PlayerPrefs.");
+        }
     }
 
-    IEnumerator DownloadObjects()
+    private WatchlistItem LoadWatchlistItemFromPlayerPrefs()
     {
-        // Wait until a watchlist item is available
-        yield return new WaitUntil(() => PlayerPrefs.HasKey("WatchlistItem_0_propertyName"));
-
-        WatchlistItem firstItem = LoadWatchlistItem(0);
-        if (firstItem == null)
+        if (PlayerPrefs.HasKey("CurrentWatchlistItem_organisationName"))
         {
-            Debug.LogError("No watchlist item found.");
-            yield break;
+            WatchlistItem item = new WatchlistItem
+            {
+                organisationName = PlayerPrefs.GetString("CurrentWatchlistItem_organisationName"),
+                parentPropertyName = PlayerPrefs.GetString("CurrentWatchlistItem_parentPropertyName"),
+                propertyName = PlayerPrefs.GetString("CurrentWatchlistItem_propertyName"),
+                date = PlayerPrefs.GetString("CurrentWatchlistItem_date"),
+                time = PlayerPrefs.GetString("CurrentWatchlistItem_time"),
+                imageURL = PlayerPrefs.GetString("CurrentWatchlistItem_imageURL"),
+                username = PlayerPrefs.GetString("CurrentWatchlistItem_username")
+            };
+            return item;
         }
+        return null;
+    }
 
-        string organisationName = firstItem.organisationName;
-        string parentPropertyName = firstItem.parentPropertyName;
-        string childPropertyName = firstItem.propertyName;
+    public void SetWatchlistItem(WatchlistItem item)
+    {
+        Debug.Log("Setting watchlist item in AWSFINALTEST: " + item.organisationName + ", " + item.parentPropertyName + ", " + item.propertyName);
+        StartCoroutine(DownloadObjects(item));
+    }
+
+    IEnumerator DownloadObjects(WatchlistItem item)
+    {
+        string organisationName = item.organisationName;
+        string parentPropertyName = item.parentPropertyName;
+        string childPropertyName = item.propertyName;
 
         Debug.Log("Using data: " + organisationName + ", " + parentPropertyName + ", " + childPropertyName);
 
@@ -86,25 +109,6 @@ public class AWSFINALTEST : MonoBehaviour
         }
     }
 
-    WatchlistItem LoadWatchlistItem(int index)
-    {
-        if (PlayerPrefs.HasKey("WatchlistItem_" + index + "_propertyName"))
-        {
-            WatchlistItem item = new WatchlistItem
-            {
-                propertyName = PlayerPrefs.GetString("WatchlistItem_" + index + "_propertyName"),
-                parentPropertyName = PlayerPrefs.GetString("WatchlistItem_" + index + "_parentPropertyName"),
-                organisationName = PlayerPrefs.GetString("WatchlistItem_" + index + "_organisationName"),
-                date = PlayerPrefs.GetString("WatchlistItem_" + index + "_date"),
-                time = PlayerPrefs.GetString("WatchlistItem_" + index + "_time"),
-                imageURL = PlayerPrefs.GetString("WatchlistItem_" + index + "_imageURL"),
-                username = PlayerPrefs.GetString("WatchlistItem_" + index + "_username")
-            };
-            return item;
-        }
-        return null;
-    }
-
     [System.Serializable]
     public class FetchObjectsData
     {
@@ -133,17 +137,5 @@ public class AWSFINALTEST : MonoBehaviour
     {
         public string message;
         public List<FileData> files;
-    }
-
-    [System.Serializable]
-    public class WatchlistItem
-    {
-        public string propertyName;
-        public string parentPropertyName;
-        public string organisationName;
-        public string date;
-        public string time;
-        public string imageURL;
-        public string username;
     }
 }
