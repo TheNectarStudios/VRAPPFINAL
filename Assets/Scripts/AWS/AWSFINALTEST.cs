@@ -13,6 +13,8 @@ public class AWSFINALTEST : MonoBehaviour
 
     void Start()
     {
+        Debug.Log("AWSFINALTEST script started.");
+
         if (importerObject != null) importerObject.SetActive(false);
         if (anotherObject != null) anotherObject.SetActive(false);
         if (thirdObject != null) thirdObject.SetActive(false);
@@ -20,6 +22,7 @@ public class AWSFINALTEST : MonoBehaviour
         WatchlistItem item = LoadWatchlistItemFromPlayerPrefs();
         if (item != null)
         {
+            Debug.Log("Watchlist item loaded: " + item.organisationName);
             SetWatchlistItem(item);
         }
         else
@@ -137,5 +140,17 @@ public class AWSFINALTEST : MonoBehaviour
     {
         public string message;
         public List<FileData> files;
+    }
+
+    [System.Serializable]
+    public class WatchlistItem
+    {
+        public string propertyName;
+        public string parentPropertyName;
+        public string organisationName;
+        public string date;
+        public string time;
+        public string imageURL;
+        public string username;
     }
 }

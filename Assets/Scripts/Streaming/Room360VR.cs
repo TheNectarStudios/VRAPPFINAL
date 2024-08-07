@@ -4,7 +4,7 @@ using Photon.Realtime;
 
 public class Room360VR : MonoBehaviourPunCallbacks
 {
-    private WatchlistItem currentWatchlistItem;
+    private bool isSceneLoading = false;
 
     void Start()
     {
@@ -16,35 +16,20 @@ public class Room360VR : MonoBehaviourPunCallbacks
         }
     }
 
-    public void SetWatchlistItemAndChangeScene(WatchlistItem item)
+    public void ChangeSceneTo360VR()
     {
-        currentWatchlistItem = item;
-        SaveWatchlistItemToPlayerPrefs(item);
-        ChangeSceneTo360VR();
-    }
-
-    private void SaveWatchlistItemToPlayerPrefs(WatchlistItem item)
-    {
-        PlayerPrefs.SetString("CurrentWatchlistItem_organisationName", item.organisationName);
-        PlayerPrefs.SetString("CurrentWatchlistItem_parentPropertyName", item.parentPropertyName);
-        PlayerPrefs.SetString("CurrentWatchlistItem_propertyName", item.propertyName);
-        PlayerPrefs.SetString("CurrentWatchlistItem_date", item.date);
-        PlayerPrefs.SetString("CurrentWatchlistItem_time", item.time);
-        PlayerPrefs.SetString("CurrentWatchlistItem_imageURL", item.imageURL);
-        PlayerPrefs.SetString("CurrentWatchlistItem_username", item.username);
-        PlayerPrefs.Save();
-    }
-
-    private void ChangeSceneTo360VR()
-    {
-        if (PhotonNetwork.InRoom)
+        if (!isSceneLoading)
         {
-            Debug.Log("Changing scene to: 360VR");
-            PhotonNetwork.LoadLevel("360VR");
-        }
-        else
-        {
-            Debug.LogError("Not in a room. Cannot change scene.");
+            isSceneLoading = true;
+            if (PhotonNetwork.InRoom)
+            {
+                Debug.Log("Changing scene to: 360VR");
+                PhotonNetwork.LoadLevel("360VR");
+            }
+            else
+            {
+                Debug.LogError("Not in a room. Cannot change scene.");
+            }
         }
     }
 
@@ -57,7 +42,7 @@ public class Room360VR : MonoBehaviourPunCallbacks
     public override void OnJoinedLobby()
     {
         Debug.Log("Joined Lobby.");
-        PhotonNetwork.JoinOrCreateRoom("Room360VR", new RoomOptions { MaxPlayers = 20 }, TypedLobby.Default);
+        PhotonNetwork.JoinOrCreateRoom("Room360VR", new RoomOptions(), TypedLobby.Default);
     }
 
     public override void OnJoinedRoom()
@@ -92,10 +77,5 @@ public class Room360VR : MonoBehaviourPunCallbacks
     {
         Debug.Log("Successfully left room. Now joining or creating a new room.");
         PhotonNetwork.JoinOrCreateRoom("Room360VR", new RoomOptions { MaxPlayers = 20 }, TypedLobby.Default);
-    }
-
-    public override void OnDisconnected(DisconnectCause cause)
-    {
-        Debug.LogError("Disconnected from Photon: " + cause.ToString());
     }
 }
