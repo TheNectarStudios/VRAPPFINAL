@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.SceneManagement;
 using UnityEngine.Networking;
 using System.Collections;
 using System.Collections.Generic;
@@ -9,6 +8,9 @@ public class WatchlistButtonManager : MonoBehaviour
 {
     public Button buttonPrefab; // Assign this in the Inspector
     public Transform buttonParent; // Assign this in the Inspector
+
+    private List<Button> buttons = new List<Button>();
+    private bool isSceneChanging = false;
 
     void Start()
     {
@@ -35,38 +37,40 @@ public class WatchlistButtonManager : MonoBehaviour
             }
 
             Button newButton = Instantiate(buttonPrefab, buttonParent);
+            buttons.Add(newButton);
             StartCoroutine(LoadImageFromURL(item.imageURL, newButton));
 
-            // Set the first watchlist item as the default image on the button
-            if (i == 0)
-            {
-                StartCoroutine(LoadImageFromURL(item.imageURL, buttonPrefab));
-                SaveWatchlistItemToPlayerPrefs(item); // Save the item to PlayerPrefs
-                AWSFINALTEST awsFinalTest = FindObjectOfType<AWSFINALTEST>();
-                if (awsFinalTest != null)
-                {
-                    awsFinalTest.SetWatchlistItem(item);
-                }
-                else
-                {
-                    Debug.LogError("AWSFINALTEST script not found in the scene.");
-                }
-            }
-
             // Set up the button click listener
+            int index = i; // Capture the current index
             newButton.onClick.AddListener(() =>
             {
-                SaveWatchlistItemToPlayerPrefs(item); // Save the item to PlayerPrefs
-                AWSFINALTEST awsFinalTest = FindObjectOfType<AWSFINALTEST>();
-                if (awsFinalTest != null)
+                SaveWatchlistItemToPlayerPrefs(item);
+                if (!isSceneChanging)
                 {
-                    awsFinalTest.SetWatchlistItem(item);
+                    isSceneChanging = true;
+                    Room360VR room360VR = FindObjectOfType<Room360VR>();
+                    if (room360VR != null)
+                    {
+                        room360VR.ChangeSceneTo360VR();
+                    }
+                    else
+                    {
+                        Debug.LogError("Room360VR script not found in the scene.");
+                    }
                 }
-                else
-                {
-                    Debug.LogError("AWSFINALTEST script not found in the scene.");
-                }
+
+                ToggleButtons(index);
             });
+        }
+
+        // Initially set the first button as active and others as inactive
+        if (buttons.Count > 0)
+        {
+            buttons[0].gameObject.SetActive(true);
+            for (int i = 1; i < buttons.Count; i++)
+            {
+                buttons[i].gameObject.SetActive(false);
+            }
         }
     }
 
@@ -122,5 +126,24 @@ public class WatchlistButtonManager : MonoBehaviour
                 Debug.LogError("Failed to load image from URL: " + request.error);
             }
         }
+    }
+
+    void ToggleButtons(int clickedIndex)
+    {
+        for (int i = 0; i < buttons.Count; i++)
+        {
+            buttons[i].gameObject.SetActive(i == clickedIndex);
+        }
+    }
+
+    // Public method to be called from UI buttons
+    public void ToggleToFirstButton()
+    {
+        ToggleButtons(0);
+    }
+
+    public void ToggleToSecondButton()
+    {
+        ToggleButtons(1);
     }
 }
