@@ -3,11 +3,13 @@ using UnityEngine.UI;
 using UnityEngine.Networking;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro; // Import TextMeshPro
 
 public class WatchlistButtonManager : MonoBehaviour
 {
     public Button buttonPrefab; // Assign this in the Inspector
     public Transform buttonParent; // Assign this in the Inspector
+    public TextMeshProUGUI downloadStatusText; // TextMeshProUGUI instead of Text
 
     private List<Button> buttons = new List<Button>();
     private bool isSceneChanging = false;
@@ -120,10 +122,22 @@ public class WatchlistButtonManager : MonoBehaviour
             {
                 Texture2D texture = ((DownloadHandlerTexture)request.downloadHandler).texture;
                 button.GetComponent<Image>().sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
+
+                // Update the status text
+                if (downloadStatusText != null)
+                {
+                    downloadStatusText.text = "Images downloaded successfully.";
+                }
             }
             else
             {
                 Debug.LogError("Failed to load image from URL: " + request.error);
+
+                // Update the status text
+                if (downloadStatusText != null)
+                {
+                    downloadStatusText.text = "Failed to download images.";
+                }
             }
         }
     }
