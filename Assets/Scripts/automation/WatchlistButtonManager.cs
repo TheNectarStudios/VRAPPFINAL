@@ -3,13 +3,13 @@ using UnityEngine.UI;
 using UnityEngine.Networking;
 using System.Collections;
 using System.Collections.Generic;
-using TMPro; // Import TextMeshPro
+using TMPro;
 
 public class WatchlistButtonManager : MonoBehaviour
 {
     public Button buttonPrefab; // Assign this in the Inspector
     public Transform buttonParent; // Assign this in the Inspector
-    public TextMeshProUGUI downloadStatusText; // TextMeshProUGUI instead of Text
+    public TextMeshProUGUI statusText; // Assign this in the Inspector
 
     private List<Button> buttons = new List<Button>();
     private bool isSceneChanging = false;
@@ -21,20 +21,28 @@ public class WatchlistButtonManager : MonoBehaviour
 
     void LoadWatchlistButtons()
     {
-        List<WatchlistItem> watchlistItems = LoadWatchlistItemsFromPlayerPrefs();
-
-        if (watchlistItems.Count == 0)
+        if (BookingFetcher.bookingData == null || BookingFetcher.bookingData.watchlist == null)
         {
             Debug.LogWarning("No watchlist items found.");
+            if (statusText != null)
+            {
+                statusText.text = "No watchlist items found.";
+            }
             return;
         }
 
+        List<BookingFetcher.WatchlistItem> watchlistItems = BookingFetcher.bookingData.watchlist;
+
         for (int i = 0; i < watchlistItems.Count; i++)
         {
-            WatchlistItem item = watchlistItems[i];
+            BookingFetcher.WatchlistItem item = watchlistItems[i];
             if (buttonPrefab == null)
             {
                 Debug.LogError("Button Prefab is not assigned!");
+                if (statusText != null)
+                {
+                    statusText.text = "Button Prefab is not assigned!";
+                }
                 return;
             }
 
@@ -46,7 +54,7 @@ public class WatchlistButtonManager : MonoBehaviour
             int index = i; // Capture the current index
             newButton.onClick.AddListener(() =>
             {
-                SaveWatchlistItemToPlayerPrefs(item);
+                SaveWatchlistItemToPrefs(item);
                 if (!isSceneChanging)
                 {
                     isSceneChanging = true;
@@ -58,6 +66,10 @@ public class WatchlistButtonManager : MonoBehaviour
                     else
                     {
                         Debug.LogError("Room360VR script not found in the scene.");
+                        if (statusText != null)
+                        {
+                            statusText.text = "Room360VR script not found in the scene.";
+                        }
                     }
                 }
 
@@ -76,7 +88,7 @@ public class WatchlistButtonManager : MonoBehaviour
         }
     }
 
-    void SaveWatchlistItemToPlayerPrefs(WatchlistItem item)
+    void SaveWatchlistItemToPrefs(BookingFetcher.WatchlistItem item)
     {
         PlayerPrefs.SetString("CurrentWatchlistItem_organisationName", item.organisationName);
         PlayerPrefs.SetString("CurrentWatchlistItem_parentPropertyName", item.parentPropertyName);
@@ -88,32 +100,10 @@ public class WatchlistButtonManager : MonoBehaviour
         PlayerPrefs.Save();
     }
 
-    List<WatchlistItem> LoadWatchlistItemsFromPlayerPrefs()
-    {
-        List<WatchlistItem> watchlistItems = new List<WatchlistItem>();
-
-        int index = 0;
-        while (PlayerPrefs.HasKey($"WatchlistItem_{index}_propertyName"))
-        {
-            WatchlistItem item = new WatchlistItem
-            {
-                propertyName = PlayerPrefs.GetString($"WatchlistItem_{index}_propertyName"),
-                parentPropertyName = PlayerPrefs.GetString($"WatchlistItem_{index}_parentPropertyName"),
-                organisationName = PlayerPrefs.GetString($"WatchlistItem_{index}_organisationName"),
-                date = PlayerPrefs.GetString($"WatchlistItem_{index}_date"),
-                time = PlayerPrefs.GetString($"WatchlistItem_{index}_time"),
-                imageURL = PlayerPrefs.GetString($"WatchlistItem_{index}_imageURL"),
-                username = PlayerPrefs.GetString($"WatchlistItem_{index}_username")
-            };
-            watchlistItems.Add(item);
-            index++;
-        }
-
-        return watchlistItems;
-    }
-
     IEnumerator LoadImageFromURL(string url, Button button)
     {
+        Debug.Log("Attempting to load image from URL: " + url);
+
         using (UnityWebRequest request = UnityWebRequestTexture.GetTexture(url))
         {
             yield return request.SendWebRequest();
@@ -122,21 +112,18 @@ public class WatchlistButtonManager : MonoBehaviour
             {
                 Texture2D texture = ((DownloadHandlerTexture)request.downloadHandler).texture;
                 button.GetComponent<Image>().sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
-
-                // Update the status text
-                if (downloadStatusText != null)
+                Debug.Log("Successfully loaded image from URL: " + url);
+                if (statusText != null)
                 {
-                    downloadStatusText.text = "Images downloaded successfully.";
+                    statusText.text = "Successfully loaded image from URL: " + url;
                 }
             }
             else
             {
-                Debug.LogError("Failed to load image from URL: " + request.error);
-
-                // Update the status text
-                if (downloadStatusText != null)
+                Debug.LogError("Failed to load image from URL: " + url + " - " + request.error);
+                if (statusText != null)
                 {
-                    downloadStatusText.text = "Failed to download images.";
+                    statusText.text = "Failed to load image from URL: " + url + " - " + request.error;
                 }
             }
         }

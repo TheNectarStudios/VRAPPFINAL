@@ -2,14 +2,14 @@ using UnityEngine;
 using UnityEngine.Networking;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 
 public class BookingFetcher : MonoBehaviour
 {
     public string baseURL = "https://theserver-tp6r.onrender.com";
     public string bookingKey = "R7PH5B"; // Example booking key
 
-    public BookingData bookingData;
-
+    public static BookingData bookingData; // Store the fetched booking data
     public static string FetchedRoomKey; // Store the fetched room key
 
     void Start()
@@ -17,11 +17,12 @@ public class BookingFetcher : MonoBehaviour
         StartCoroutine(FetchBookingByKey());
     }
 
-     public void StartFetchingBooking(string bookingKey)
+    public void StartFetchingBooking(string bookingKey)
     {
         this.bookingKey = bookingKey;
         StartCoroutine(FetchBookingByKey());
     }
+
     IEnumerator FetchBookingByKey()
     {
         string url = baseURL + "/slots/bookings/key/" + bookingKey;
@@ -39,6 +40,7 @@ public class BookingFetcher : MonoBehaviour
                 bookingData = response.booking;
                 FetchedRoomKey = response.booking.key;
                 Debug.Log("Fetched Room Key: " + FetchedRoomKey);
+                SaveBookingDataToJSON();
             }
             else
             {
@@ -48,6 +50,31 @@ public class BookingFetcher : MonoBehaviour
         else
         {
             Debug.LogError("Request failed: " + request.error);
+        }
+    }
+
+    void SaveBookingDataToJSON()
+    {
+        string json = JsonUtility.ToJson(bookingData);
+        string path = Path.Combine(Application.persistentDataPath, "BookingData.json");
+        File.WriteAllText(path, json);
+        Debug.Log("Booking data saved to: " + path);
+    }
+
+    public static BookingData LoadBookingDataFromJSON()
+    {
+        string path = Path.Combine(Application.persistentDataPath, "BookingData.json");
+        if (File.Exists(path))
+        {
+            string json = File.ReadAllText(path);
+            BookingData data = JsonUtility.FromJson<BookingData>(json);
+            Debug.Log("Booking data loaded from: " + path);
+            return data;
+        }
+        else
+        {
+            Debug.LogWarning("No booking data file found.");
+            return null;
         }
     }
 
