@@ -1,30 +1,69 @@
 using UnityEngine;
 using UnityEngine.Networking;
 using System.Collections;
-using System.Text;
 using System.Collections.Generic;
+using System.Text;
 
-public class FileDownloader : MonoBehaviour
+public class AWSFINALTEST : MonoBehaviour
 {
     public string baseURL = "https://theserver-tp6r.onrender.com";
-    public string organisationName = "ExampleOrganisation";
-    public string parentPropertyName = "ExampleParentProperty";
-    public string childPropertyName = "ExampleChildProperty";
     public GameObject importerObject;
     public GameObject anotherObject;
     public GameObject thirdObject;
 
     void Start()
     {
+        Debug.Log("AWSFINALTEST script started.");
+
         if (importerObject != null) importerObject.SetActive(false);
         if (anotherObject != null) anotherObject.SetActive(false);
         if (thirdObject != null) thirdObject.SetActive(false);
 
-        StartCoroutine(DownloadObjects());
+        WatchlistItem item = LoadWatchlistItemFromPlayerPrefs();
+        if (item != null)
+        {
+            Debug.Log("Watchlist item loaded: " + item.organisationName);
+            SetWatchlistItem(item);
+        }
+        else
+        {
+            Debug.LogError("No watchlist item found in PlayerPrefs.");
+        }
     }
 
-    IEnumerator DownloadObjects()
+    private WatchlistItem LoadWatchlistItemFromPlayerPrefs()
     {
+        if (PlayerPrefs.HasKey("CurrentWatchlistItem_organisationName"))
+        {
+            WatchlistItem item = new WatchlistItem
+            {
+                organisationName = PlayerPrefs.GetString("CurrentWatchlistItem_organisationName"),
+                parentPropertyName = PlayerPrefs.GetString("CurrentWatchlistItem_parentPropertyName"),
+                propertyName = PlayerPrefs.GetString("CurrentWatchlistItem_propertyName"),
+                date = PlayerPrefs.GetString("CurrentWatchlistItem_date"),
+                time = PlayerPrefs.GetString("CurrentWatchlistItem_time"),
+                imageURL = PlayerPrefs.GetString("CurrentWatchlistItem_imageURL"),
+                username = PlayerPrefs.GetString("CurrentWatchlistItem_username")
+            };
+            return item;
+        }
+        return null;
+    }
+
+    public void SetWatchlistItem(WatchlistItem item)
+    {
+        Debug.Log("Setting watchlist item in AWSFINALTEST: " + item.organisationName + ", " + item.parentPropertyName + ", " + item.propertyName);
+        StartCoroutine(DownloadObjects(item));
+    }
+
+    IEnumerator DownloadObjects(WatchlistItem item)
+    {
+        string organisationName = item.organisationName;
+        string parentPropertyName = item.parentPropertyName;
+        string childPropertyName = item.propertyName;
+
+        Debug.Log("Using data: " + organisationName + ", " + parentPropertyName + ", " + childPropertyName);
+
         string url = baseURL + "/download/fetch-objects";
 
         FetchObjectsData data = new FetchObjectsData(organisationName, parentPropertyName, childPropertyName);
@@ -101,5 +140,17 @@ public class FileDownloader : MonoBehaviour
     {
         public string message;
         public List<FileData> files;
+    }
+
+    [System.Serializable]
+    public class WatchlistItem
+    {
+        public string propertyName;
+        public string parentPropertyName;
+        public string organisationName;
+        public string date;
+        public string time;
+        public string imageURL;
+        public string username;
     }
 }

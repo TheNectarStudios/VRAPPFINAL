@@ -2,16 +2,24 @@ using UnityEngine;
 using UnityEngine.Networking;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 
 public class BookingFetcher : MonoBehaviour
 {
     public string baseURL = "https://theserver-tp6r.onrender.com";
     public string bookingKey = "R7PH5B"; // Example booking key
 
-    public BookingData bookingData;  
+    public static BookingData bookingData; // Store the fetched booking data
+    public static string FetchedRoomKey; // Store the fetched room key
 
     void Start()
     {
+        StartCoroutine(FetchBookingByKey());
+    }
+
+    public void StartFetchingBooking(string bookingKey)
+    {
+        this.bookingKey = bookingKey;
         StartCoroutine(FetchBookingByKey());
     }
 
@@ -30,16 +38,9 @@ public class BookingFetcher : MonoBehaviour
             if (response.booking != null)
             {
                 bookingData = response.booking;
-                Debug.Log("Booking Key: " + response.booking.key);
-                foreach (var item in response.booking.watchlist)
-                {
-                    Debug.Log("Property Name: " + item.propertyName);
-                    Debug.Log("Parent Property Name: " + item.parentPropertyName);
-                    Debug.Log("Organisation Name: " + item.organisationName);
-                    Debug.Log("Date: " + item.date);
-                    Debug.Log("Time: " + item.time);
-                    Debug.Log("Image URL: " + item.imageURL);
-                }
+                FetchedRoomKey = response.booking.key;
+                Debug.Log("Fetched Room Key: " + FetchedRoomKey);
+                SaveBookingDataToJSON();
             }
             else
             {
@@ -52,6 +53,47 @@ public class BookingFetcher : MonoBehaviour
         }
     }
 
+    void SaveBookingDataToJSON()
+    {
+        string json = JsonUtility.ToJson(bookingData);
+        string path = Path.Combine(Application.persistentDataPath, "BookingData.json");
+        File.WriteAllText(path, json);
+        Debug.Log("Booking data saved to: " + path);
+    }
+
+    public static BookingData LoadBookingDataFromJSON()
+    {
+        string path = Path.Combine(Application.persistentDataPath, "BookingData.json");
+        if (File.Exists(path))
+        {
+            string json = File.ReadAllText(path);
+            BookingData data = JsonUtility.FromJson<BookingData>(json);
+            Debug.Log("Booking data loaded from: " + path);
+            return data;
+        }
+        else
+        {
+            Debug.LogWarning("No booking data file found.");
+            return null;
+        }
+    }
+
+    [System.Serializable]
+    public class BookingData
+    {
+        public string _id;
+        public string username;
+        public List<WatchlistItem> watchlist;
+        public string key;
+        public string date;
+    }
+
+    [System.Serializable]
+    public class BookingResponse
+    {
+        public BookingData booking;
+    }
+
     [System.Serializable]
     public class WatchlistItem
     {
@@ -61,19 +103,6 @@ public class BookingFetcher : MonoBehaviour
         public string date;
         public string time;
         public string imageURL;
-    }
-
-    [System.Serializable]
-    public class BookingData
-    {
-        public string key;
-        public List<WatchlistItem> watchlist;
-    }
-
-    [System.Serializable]
-    public class BookingResponse
-    {
-        public string message;
-        public BookingData booking;
+        public string username;
     }
 }
