@@ -8,7 +8,7 @@ public class BookingFetcher : MonoBehaviour
     public string baseURL = "https://theserver-tp6r.onrender.com";
     public string bookingKey = "R7PH5B"; // Example booking key
 
-    public BookingData bookingData;
+    public BookingData bookingData;  
 
     void Start()
     {
